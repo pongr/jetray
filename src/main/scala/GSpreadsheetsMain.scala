@@ -7,7 +7,7 @@ import Timing._
 object GSpreadsheetsMain extends App {
   //inputs
   val spreadsheetName = "Jetray Timings"
-  val runId = "2013-03-14T18:08:00"
+  val runId = "2013-03-15T10:26:00"
   val count = 100
   val username = ""
   val password = ""
