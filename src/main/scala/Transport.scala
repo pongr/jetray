@@ -19,7 +19,7 @@ Supervisor needs to:
 
 class TransportActor(
   session: Session,
-  host: String,
+  host: => String,
   port: Int,
   user: String,
   password: String,
