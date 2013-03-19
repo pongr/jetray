@@ -96,9 +96,9 @@ class GoogleSpreadsheetTimingStorage(
 ) extends Actor with ActorLogging {
   import GoogleSpreadsheetTimingStorage._
 
+  var lastRunId = runId
   var cellFeedOption: Option[CellFeed] = None
-
-  override def preStart() {
+  def createCellFeed(runId: String) {
     val service = newSpreadsheetService(username, password)
     val cellFeedEither = for { //this is a pretty gross way to populate cellFeedOption...
       s <- spreadsheet(service, spreadsheetName).right
@@ -107,13 +107,20 @@ class GoogleSpreadsheetTimingStorage(
     cellFeedEither match {
       case Right(cellFeed) => 
         cellFeedOption = Some(cellFeed)
+        lastRunId = runId
         log.debug("Obtained a CellFeed for worksheet {}/{}", spreadsheetName, runId)
       case Left(e) => throw e
     }
   }
 
+  override def preStart() {
+    createCellFeed(runId)
+  }
+
+  //TODO if these events come in at a high volume, we should batch them together instead of making singular http requests
   def receive = {
     case Timing(runId, emailId, name, time) => 
+      if (runId != lastRunId) createCellFeed(runId)
       val row = emailId + 1
       val col = (timingNames indexOf name) + 1
       cellFeedOption foreach { _.insert(new CellEntry(row, col, time.toString)) }
